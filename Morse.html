@@ -1,0 +1,160 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+<head>
+
+
+	<title>Page Title</title>
+
+	
+</head>
+<body>
+	<input type='checkbox' id='enableSound' >Uncheck to mute audio</input>
+	<audio id='dot' >
+		<source src='censor-beep-01.mp3' type='audio/mpeg'>
+	</audio>
+	<audio id='dash'>
+		<source src='censor-beep-3.mp3' type='audio/mpeg'>
+	</audio>
+	<audio id='delay'>
+		<source src='delay.mp3' type='audio/mpeg'>
+	</audio>
+	<textarea id='msgField' autofocus ></textarea>	
+	Press Enter For Morse Message -> 
+	<textarea id='morseMsg'></textarea>
+
+	<script>
+		alphabet = {
+			a: '.-',
+			b: '-...',
+			c: '-.-.',
+			d: '-..',
+			e: '.',
+			f: '..-.',
+			g: '--.',
+			h: '....',
+			i: '..',
+			j: '.---',
+			k: '-.-',
+			l: '.-..',
+			m: '--',
+			n: '-.',
+			o: '---',
+			p: '.--.',
+			q: '--.-',
+			r: '.-.',
+			s: '...',
+			t: '-',
+			u: '..-',
+			v: '...-',
+			w: '.--',
+			x: '-..-',
+			y: '-.--',
+			z: '--..',
+			'0': '-----',
+			'1': '.----',
+			'2': '..---',
+			'3': '...--',
+			'4': '....-',
+			'5': '.....',
+			'6': '-....',
+			'7': '--...',
+			'8': '---..',
+			'9': '----.'
+			
+
+		}
+		var soundCheckBox = document.getElementById('enableSound')
+		var dotAudio = document.getElementById('dot')
+		var dashAudio = document.getElementById('dash')
+		var delayAudio = document.getElementById('delay')
+		var input_message = document.getElementById('msgField')
+		var output_message = document.getElementById('morseMsg')
+		var toPlay = []
+		var canPlay = true
+		var audioMute = localStorage.soundEnabled
+
+		function messageSpit (msg) {
+			console.log(msg)
+			var input_array =	msg.value.split('')
+			newString = input_array.map(function (value) {
+										newValue = value.toLowerCase()
+										if (!(newValue in alphabet)) {
+											return ' '
+										}
+										return "" + alphabet[newValue] + " "
+									})
+
+			console.log(newString.join(""))
+			return newString.join("")
+		}
+
+		function toAudio (morseMsg) {
+			var morseArray = output_message.value.split('')
+			
+			morseArray.map(function (value) {
+				console.log(value)
+				if (value == '.') {
+					toPlay = toPlay.concat(dotAudio)
+					
+				} 
+				else if (value == '-') {
+					toPlay = toPlay.concat(dashAudio)
+				}
+				else if (value == ' ')
+					toPlay = toPlay.concat(delayAudio)
+			})
+			return toPlay
+		}
+
+		function playQueue (queue) {
+			if (queue.length == 0) {
+				return queue
+			}
+			queue[0].play()
+			canPlay = false	
+			queue.shift()
+		}
+		function hasEnded (event) {
+			canPlay = true
+			playQueue(toPlay)
+		}
+		document.addEventListener('DOMContentLoaded',(event) => {
+			
+			if (localStorage.getItem('soundEnabled') != null) {
+				soundCheckBox.checked = audioMute === 'true'
+			}
+
+		})
+		dotAudio.addEventListener('ended', hasEnded)
+		dashAudio.addEventListener('ended' , hasEnded)
+		delayAudio.addEventListener('ended', hasEnded)
+		soundCheckBox.addEventListener('change', (event) => {
+			localStorage.setItem('soundEnabled', soundCheckBox.checked)
+		})	
+		document.addEventListener('keypress', (event) => {
+			console.log(event.key)
+			if (event.key == 'Enter') {
+				event.preventDefault()
+				output_message.value = ''
+				output_message.value = messageSpit(input_message)
+				input_message.value = ''
+				input_message.disabled=true
+				if (soundCheckBox.checked == true) {
+					toAudio(output_message.value)	
+					console.log(toPlay)	
+					playQueue(toPlay)
+					
+
+
+
+				}
+				if (toPlay.length == 0) {
+					input_message.disabled=false
+				}
+			}
+		})
+	
+	
+	</script>
+</body>
+</html>
